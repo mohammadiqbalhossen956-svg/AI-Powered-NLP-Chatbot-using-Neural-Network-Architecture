@@ -1,0 +1,55 @@
+import pandas as pd
+import numpy as np
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.neural_network import MLPClassifier
+
+# 1. Knowledge Base (Dataset)
+data = {
+    "question": [
+        "Hi", "How are you?", "What is your name?", 
+        "What time is it?", "Goodbye", "What can you do?"
+    ],
+    "answer": [
+        "Hello! I am your AI chatbot.", 
+        "I'm doing great, thank you for asking!", 
+        "I am a Neural Network based Chatbot.", 
+        "It's time to build more AI projects!", 
+        "Goodbye! Have a great day!",
+        "I can answer your questions based on my training."
+    ]
+}
+
+df = pd.DataFrame(data)
+
+# 2. Natural Language Processing (Text Vectorization)
+# Converting text into numerical vectors using TF-IDF
+vectorizer = TfidfVectorizer()
+X = vectorizer.fit_transform(df['question'])
+y = df['answer']
+
+# 3. Neural Network Model (MLP - Multi-layer Perceptron)
+# Creating a 3-layer architecture (Input -> Hidden Layers -> Output)
+model = MLPClassifier(hidden_layer_sizes=(16, 8), max_iter=1000, random_state=42)
+model.fit(X, y)
+
+# 4. Chat Interface Logic
+def get_response(user_input):
+    # Transforming input text to vector
+    input_vec = vectorizer.transform([user_input])
+    
+    # Probability thresholding for confidence check
+    probs = model.predict_proba(input_vec)
+    if np.max(probs) < 0.3: 
+        return "I am sorry, I do not understand that yet."
+    
+    return model.predict(input_vec)[0]
+
+# Initializing Chat
+print("Bot: Hello! Start chatting with me (Type 'Goodbye' to exit)")
+while True:
+    user_query = input("You: ")
+    if user_query.lower() == "goodbye":
+        print("Bot: " + get_response("Goodbye"))
+        break
+    response = get_response(user_query)
+    print("Bot: " + response)
